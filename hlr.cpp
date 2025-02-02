@@ -9,6 +9,7 @@
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <cstring>
 
 #define float_t float
 #define SHAPE_NONE 0
@@ -56,7 +57,7 @@ bool pt_in_poly(const V2f& pt, const std::vector<V2f>& poly){
   float_t x = pt.x;
   float_t y = pt.y;
   int wn = 0;
-  for (long i = 0, j = (long)poly.size()-1; i < poly.size(); j = i++){
+  for (size_t i = 0, j = (long)poly.size()-1; i < poly.size(); j = i++){
     float_t xi = poly[i].x, yi = poly[i].y;
     float_t xj = poly[j].x, yj = poly[j].y;
 
@@ -83,7 +84,7 @@ Bbox get_bbox(const std::vector<V2f>& pts){
   bb.ymin = INFINITY;
   bb.xmax = -INFINITY;
   bb.ymax = -INFINITY;
-  for (int i = 0; i < pts.size(); i++){
+  for (size_t i = 0; i < pts.size(); i++){
     bb.xmin = fmin(bb.xmin,pts[i].x);
     bb.ymin = fmin(bb.ymin,pts[i].y);
     bb.xmax = fmax(bb.xmax,pts[i].x);
@@ -149,7 +150,7 @@ void clip_one(const std::vector<V2f>& polyline, const std::vector<V2f>& polygon,
     V2f ls1 = polyline[i+1];
     std::vector<float> isx;
     
-    for (int j = 0; j < polygon.size(); j++){
+    for (size_t j = 0; j < polygon.size(); j++){
       
       float_t ret = segment_intersect(ls0,ls1,polygon[j],polygon[(j+1)%polygon.size()]);
       if (ret>=0){
@@ -193,7 +194,7 @@ void clip_one(const std::vector<V2f>& polyline, const std::vector<V2f>& polygon,
     }
   }
   
-  for (int i = idx0; i < ndp.size(); i++){
+  for (size_t i = idx0; i < ndp.size(); i++){
     ndp[i].bbox = get_bbox(ndp[i].poly);
   }
   
@@ -205,14 +206,14 @@ std::vector<Shape > clip(const std::vector<Shape> & shapes){
   std::vector<Shape > out;
   out.reserve(shapes.size());
   
-  for (int i = 0; i < shapes.size(); i++){
+  for (size_t i = 0; i < shapes.size(); i++){
     if (i % 1000 == 0){
       fprintf(stderr,"\33[2K\r[");
       int pct = 20*(float)i/(float)shapes.size();
       for (int i = 0; i < 20; i++){
         fprintf(stderr,i<=pct?"#":"-");
       }
-      fprintf(stderr,"] clipping %d/%lu...",i,shapes.size());
+      fprintf(stderr,"] clipping %ld/%lu...",i,shapes.size());
       fflush(stderr);
       out.erase(
         std::remove_if(out.begin(), out.end(), [](Shape& s) { return s.type==SHAPE_NONE; }), 
@@ -291,10 +292,10 @@ V2f parse(FILE* fd, std::vector<Shape>& shapes) {
 void draw_svg(FILE* fd, std::vector<Shape > & polys,int w,int h){
   fprintf(fd,"<svg xmlns=\"http://www.w3.org/2000/svg\"\nwidth=\"%d\" height=\"%d\"\n>",w,h);
   fprintf(fd,"<rect x=\"0\" y=\"0\" width=\"%d\" height=\"%d\" fill=\"white\"/>",w,h);
-  for (int i = 0; i < polys.size(); i++){
+  for (size_t i = 0; i < polys.size(); i++){
     if (polys[i].type != SHAPE_LINE) continue;
     fprintf(fd,"<path stroke=\"black\" stroke-width=\"0.5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"\nM");
-    for (int j = 0; j < polys[i].poly.size(); j++){
+    for (size_t j = 0; j < polys[i].poly.size(); j++){
       float x = polys[i].poly[j].x;
       float y = polys[i].poly[j].y;
       fprintf(fd,"%03f,%03f ",x,y);
